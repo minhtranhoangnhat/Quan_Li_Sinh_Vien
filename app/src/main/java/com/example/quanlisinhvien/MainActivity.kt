@@ -64,24 +64,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /*override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.menu_add) {
-            startActivityForResult(
-                Intent(this, AddStudentActivity::class.java),
-                ADD_REQUEST_CODE
-            )
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-     */
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
