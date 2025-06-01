@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: StudentAdapter
+    private lateinit var dbHelper: StudentDatabaseHelper
     private val studentList = mutableListOf<Student>()
 
     companion object {
@@ -28,6 +29,10 @@ class MainActivity : AppCompatActivity() {
         // Set Toolbar làm ActionBar
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+
+        // Khởi tạo database và tải danh sách sinh viên
+        dbHelper = StudentDatabaseHelper(this)
+        studentList.addAll(dbHelper.getAllStudents())
 
         recyclerView = findViewById(R.id.recyclerView)
         adapter = StudentAdapter(studentList) { position, action ->
@@ -71,17 +76,21 @@ class MainActivity : AppCompatActivity() {
                 ADD_REQUEST_CODE -> {
                     val student = data?.getParcelableExtra<Student>("student")
                     student?.let {
-                        studentList.add(0, it)
-                        adapter.notifyItemInserted(0)
-                        recyclerView.scrollToPosition(0)
+                        if(dbHelper.insertStudent(it)) {
+                            studentList.add(0, it)
+                            adapter.notifyItemInserted(0)
+                            recyclerView.scrollToPosition(0)
+                        }
                     }
                 }
                 UPDATE_REQUEST_CODE -> {
                     val position = data?.getIntExtra("position", -1)
                     val student = data?.getParcelableExtra<Student>("student")
                     if (position != null && position != -1 && student != null) {
-                        studentList[position] = student
-                        adapter.notifyItemChanged(position)
+                        if(dbHelper.updateStudent(student)) {
+                            studentList[position] = student
+                            adapter.notifyItemChanged(position)
+                        }
                     }
                 }
             }
@@ -93,8 +102,11 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Xóa sinh viên")
             .setMessage("Bạn chắc chắn muốn xóa?")
             .setPositiveButton("Xóa") { _, _ ->
-                studentList.removeAt(position)
-                adapter.notifyItemRemoved(position)
+                val mssv = studentList[position].mssv
+                if(dbHelper.deleteStudent(mssv)) {
+                    studentList.removeAt(position)
+                    adapter.notifyItemRemoved(position)
+                }
             }
             .setNegativeButton("Hủy", null)
             .show()
