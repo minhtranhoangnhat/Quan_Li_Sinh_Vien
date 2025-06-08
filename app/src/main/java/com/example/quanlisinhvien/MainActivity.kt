@@ -14,8 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: StudentAdapter
-    private lateinit var dbHelper: StudentDatabaseHelper
+    //private lateinit var dbHelper: StudentDatabaseHelper
     private val studentList = mutableListOf<Student>()
+    private lateinit var studentDao: StudentDao
 
     companion object {
         const val ADD_REQUEST_CODE = 100
@@ -30,10 +31,15 @@ class MainActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
+        // Khởi tạo Dao
+        studentDao = AppDatabase.getDatabase(this).studentDao()
+        studentList.addAll(studentDao.getAll())
+
+/*
         // Khởi tạo database và tải danh sách sinh viên
         dbHelper = StudentDatabaseHelper(this)
         studentList.addAll(dbHelper.getAllStudents())
-
+*/
         recyclerView = findViewById(R.id.recyclerView)
         adapter = StudentAdapter(studentList) { position, action ->
             when (action) {
@@ -76,7 +82,15 @@ class MainActivity : AppCompatActivity() {
                 ADD_REQUEST_CODE -> {
                     val student = data?.getParcelableExtra<Student>("student")
                     student?.let {
+                        /*
                         if(dbHelper.insertStudent(it)) {
+                            studentList.add(0, it)
+                            adapter.notifyItemInserted(0)
+                            recyclerView.scrollToPosition(0)
+                        }
+                        */
+
+                        if(studentDao.insert(it) != -1L) {
                             studentList.add(0, it)
                             adapter.notifyItemInserted(0)
                             recyclerView.scrollToPosition(0)
@@ -87,7 +101,13 @@ class MainActivity : AppCompatActivity() {
                     val position = data?.getIntExtra("position", -1)
                     val student = data?.getParcelableExtra<Student>("student")
                     if (position != null && position != -1 && student != null) {
+                        /*
                         if(dbHelper.updateStudent(student)) {
+                            studentList[position] = student
+                            adapter.notifyItemChanged(position)
+                        }
+                        */
+                        if(studentDao.update(student) > 0) {
                             studentList[position] = student
                             adapter.notifyItemChanged(position)
                         }
@@ -103,7 +123,13 @@ class MainActivity : AppCompatActivity() {
             .setMessage("Bạn chắc chắn muốn xóa?")
             .setPositiveButton("Xóa") { _, _ ->
                 val mssv = studentList[position].mssv
+                /*
                 if(dbHelper.deleteStudent(mssv)) {
+                    studentList.removeAt(position)
+                    adapter.notifyItemRemoved(position)
+                }
+                 */
+                if(studentDao.delete(studentList[position]) > 0) {
                     studentList.removeAt(position)
                     adapter.notifyItemRemoved(position)
                 }
